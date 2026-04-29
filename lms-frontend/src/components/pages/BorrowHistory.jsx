@@ -56,7 +56,7 @@ export default function BorrowHistory() {
           <label className="text-[11px] font-bold text-gray-500 uppercase ml-1">Search History</label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Search Student Name, ID, or Book Title..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            <input className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm outline-none focus:border-[#991b1b]" placeholder="Search Student Name, ID, or Book Title..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
           </div>
       </div>
 

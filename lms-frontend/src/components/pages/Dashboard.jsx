@@ -54,9 +54,9 @@ function Dashboard() {
   useEffect(() => { fetchDashboardData() }, [])
 
   const statsCards = [
-    { title: 'Unique Titles', value: stats.books, icon: BookOpen, bgColor: 'bg-[#0e1048]' },
+    { title: 'Unique Titles', value: stats.books, icon: BookOpen, bgColor: 'bg-[#7f1d1d]' },
     { title: 'Total Copies', value: stats.copies, icon: Library, bgColor: 'bg-emerald-600' },
-    { title: 'Categories', value: stats.categories, icon: Layers, bgColor: 'bg-blue-600' },
+    { title: 'Categories', value: stats.categories, icon: Layers, bgColor: 'bg-[#991b1b]' },
   ]
 
   // Helper to calculate due status to perfectly match the copy badge styling
@@ -155,7 +155,7 @@ function Dashboard() {
           <Card className="border-none shadow-md h-full">
             <CardHeader className="border-b border-gray-100 bg-gray-50/50">
               <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-indigo-600" /> Recent Active Borrowings
+                <Bookmark className="h-5 w-5 text-[#b91c1c]" /> Recent Active Borrowings
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">

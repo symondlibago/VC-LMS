@@ -94,13 +94,13 @@ function Sidebar({ isCollapsed, toggleSidebar, onLogout, isMobile, closeMobileSi
                   whileTap={{ scale: 0.98 }}
                   className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group relative ${
                   isActive
-                    ? 'bg-white text-[#0e1048] border border-[#0e1048]'
+                    ? 'bg-white text-[#7f1d1d] border border-[#7f1d1d]'
                     : 'hover:bg-[var(--color-sidebar-accent)]/50 text-white'
                 }`}
 
                 >
 
-                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-[#0e1048]' : item.color}`} />
+                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-[#7f1d1d]' : item.color}`} />
 
                   <AnimatePresence mode="wait">
                     {(!isCollapsed || isMobile) && (
@@ -109,7 +109,7 @@ function Sidebar({ isCollapsed, toggleSidebar, onLogout, isMobile, closeMobileSi
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className={`font-medium whitespace-nowrap ${isActive ? 'text-[#0e1048]' : 'text-[var(--color-sidebar-foreground)]'}`}
+                        className={`font-medium whitespace-nowrap ${isActive ? 'text-[#7f1d1d]' : 'text-[var(--color-sidebar-foreground)]'}`}
                       >
                         {item.label}
                       </motion.span>
@@ -120,7 +120,7 @@ function Sidebar({ isCollapsed, toggleSidebar, onLogout, isMobile, closeMobileSi
                   {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className={`absolute right-2 w-2 h-2 rounded-full bg-[#0e1048]`}
+                    className={`absolute right-2 w-2 h-2 rounded-full bg-[#7f1d1d]`}
                   />
                 )}
 
@@ -143,7 +143,7 @@ function Sidebar({ isCollapsed, toggleSidebar, onLogout, isMobile, closeMobileSi
           whileHover={{ scale: 1.02, x: 2 }}
           whileTap={{ scale: 0.98 }}
           onClick={onLogout}
-          className="relative flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group w-full hover:bg-[var(--color-destructive)]/20 text-white"
+          className="relative flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group w-full hover:bg-[var(--color-destructive)]/20 text-white cursor-pointer"
         >
           <LogOut className="h-5 w-5 flex-shrink-0 text-white" />
 
@@ -324,7 +324,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#991b1b]"></div>
       </div>
     )
   }

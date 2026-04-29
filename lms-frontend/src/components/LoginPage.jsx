@@ -53,15 +53,15 @@ const LoginPage = ({ onLogin }) => {
       {/* --- Ambient Background Effects --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -inset-10 opacity-40">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-900/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-indigo-900/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-blue-800/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#7f1d1d]/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#991b1b]/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-[#b91c1c]/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
         </div>
         
         {/* Floating Particles */}
-        <div className="floating-element absolute top-10 left-10 w-4 h-4 bg-blue-900/10 rounded-full"></div>
-        <div className="floating-element absolute bottom-20 right-20 w-6 h-6 bg-indigo-900/10 rounded-full"></div>
-        <div className="floating-element absolute top-1/2 right-10 w-3 h-3 bg-blue-800/10 rounded-full"></div>
+        <div className="floating-element absolute top-10 left-10 w-4 h-4 bg-[#7f1d1d]/10 rounded-full"></div>
+        <div className="floating-element absolute bottom-20 right-20 w-6 h-6 bg-[#991b1b]/10 rounded-full"></div>
+        <div className="floating-element absolute top-1/2 right-10 w-3 h-3 bg-[#b91c1c]/10 rounded-full"></div>
       </div>
 
       {/* --- Centered Login Card --- */}
@@ -94,7 +94,7 @@ const LoginPage = ({ onLogin }) => {
               className="text-center mb-8"
             >
               <div className="mb-6 relative inline-block">
-                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl transform scale-110"></div>
+                <div className="absolute inset-0 bg-[#991b1b]/20 rounded-full blur-xl transform scale-110"></div>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
                 Library Management System
@@ -130,13 +130,13 @@ const LoginPage = ({ onLogin }) => {
                   Email Address
                 </label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 z-10 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 z-10 text-gray-400 group-focus-within:text-[#991b1b] transition-colors" />
                   <Input
                     type="email"
                     placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="enhanced-input pl-12 h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-300"
+                    className="enhanced-input pl-12 h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#991b1b] focus:ring-4 focus:ring-[#991b1b]/10 rounded-xl transition-all duration-300"
                     required
                   />
                 </div>
@@ -148,19 +148,19 @@ const LoginPage = ({ onLogin }) => {
                   Password
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 z-10 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 z-10 text-gray-400 group-focus-within:text-[#991b1b] transition-colors" />
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="enhanced-input pl-12 pr-12 h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-300"
+                    className="enhanced-input pl-12 pr-12 h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#991b1b] focus:ring-4 focus:ring-[#991b1b]/10 rounded-xl transition-all duration-300"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors z-10"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#991b1b] transition-colors z-10"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -171,11 +171,11 @@ const LoginPage = ({ onLogin }) => {
               <div className="flex items-center justify-between pt-2">
                 <label className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer group">
                   <div className="relative flex items-center">
-                    <input type="checkbox" className="peer h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20" />
+                    <input type="checkbox" className="peer h-4 w-4 rounded border-gray-300 text-[#991b1b] focus:ring-[#991b1b]/20" />
                   </div>
                   <span className="group-hover:text-gray-700 transition-colors">Remember me</span>
                 </label>
-                <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all">
+                <a href="#" className="text-sm font-medium text-[#991b1b] hover:text-[#7f1d1d] hover:underline transition-all">
                   Forgot password?
                 </a>
               </div>
@@ -184,7 +184,7 @@ const LoginPage = ({ onLogin }) => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="enhanced-button w-full h-12 bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 hover:shadow-blue-900/30 hover:-translate-y-0.5 transition-all duration-300"
+                className="cursor-pointer enhanced-button w-full h-12 bg-gradient-to-r from-[#7f1d1d] to-[#991b1b] hover:from-[#991b1b] hover:to-[#b91c1c] text-white font-bold rounded-xl shadow-lg shadow-[#7f1d1d]/20 hover:shadow-[#7f1d1d]/30 hover:-translate-y-0.5 transition-all duration-300"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
