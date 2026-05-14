@@ -20,11 +20,13 @@ Route::options('{any}', function () {
 // Public routes
 Route::post("/register", [AuthController::class, "register"]);
 Route::post("/login", [AuthController::class, "login"]);
+Route::post("/reset-password-pin", [AuthController::class, "resetPasswordWithPin"]);
 
 // Protected Auth routes
 Route::middleware("auth:sanctum")->group(function () {
     Route::get("/user", [AuthController::class, "user"]);
     Route::post("/logout", [AuthController::class, "logout"]);
+    Route::post("/settings/update", [AuthController::class, "updateSettings"]);
 });
 
 // Library Routes

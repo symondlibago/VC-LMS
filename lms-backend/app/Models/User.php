@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'second_password',
         'role',
     ];
 
@@ -32,6 +33,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'second_password',
     ];
 
     /**
@@ -52,12 +54,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    /**
-     * Check if user has designer role
-     */
-    public function isDesigner()
+protected $appends = ['has_second_password'];
+
+    public function getHasSecondPasswordAttribute()
     {
-        return $this->role === 'designer';
+        return !empty($this->second_password);
     }
 }
 

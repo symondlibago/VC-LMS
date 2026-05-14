@@ -10,7 +10,8 @@ import {
   LogOut,
   BookOpen,
   ClipboardList,
-  History
+  History,
+ Settings as SettingsIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button.jsx'
 import './App.css'
@@ -19,6 +20,7 @@ import Dashboard from './components/pages/Dashboard'
 import Books from './components/pages/Books' 
 import Borrowings from './components/pages/Borrowings'
 import LoginPage from './components/LoginPage'
+import Settings from './components/pages/Settings'
 import BorrowHistory from './components/pages/BorrowHistory'
 import { logout, isAuthenticated, getUser } from './utils/auth'
 
@@ -28,6 +30,7 @@ const navigationItems = [
   { path: '/books', icon: BookOpen, label: 'Book Catalog', color: 'text-white', roles: ['admin'] },
   { path: '/borrowings', icon: ClipboardList, label: 'Active Borrowings', color: 'text-white', roles: ['admin'] },
   { path: '/history', icon: History, label: 'Borrow History', color: 'text-white', roles: ['admin'] },
+  { path: '/settings', icon: SettingsIcon, label: 'Settings', color: 'text-white', roles: ['admin', 'designer'] },
 ]
 
 function Sidebar({ isCollapsed, toggleSidebar, onLogout, isMobile, closeMobileSidebar, userRole }) {
@@ -252,6 +255,7 @@ function MainContent({ sidebarCollapsed, onLogout, isMobile, userRole }) {
           <Route path="/books" element={<ProtectedComponent component={Books} allowedRoles={['admin']} />} />
           <Route path="/borrowings" element={<ProtectedComponent component={Borrowings} allowedRoles={['admin']} />} />
           <Route path="/history" element={<ProtectedComponent component={BorrowHistory} allowedRoles={['admin']} />} />
+          <Route path="/settings" element={<ProtectedComponent component={Settings} allowedRoles={['admin', 'designer']} />} />
         </Routes>
       </motion.div>
     </motion.main>
