@@ -3,19 +3,24 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
-
+import basicSsl from '@vitejs/plugin-basic-ssl';
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    basicSsl(),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true
       },
+      server: {
+    https: true,
+    host: true, // exposes to your network so phone can access it
+  },
       manifest: {
-        name: 'Monitoring System',
-        short_name: 'Monitor',
+        name: 'Library Monitoring System',
+        short_name: 'LMS',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

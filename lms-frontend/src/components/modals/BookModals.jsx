@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Loader2, Book, Layers, AlertCircle, Edit2, Trash2, Check, UploadCloud, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button.jsx';
-import { SearchableSelect } from '../CustomInputs'; 
+import { SearchableSelect } from '../CustomInputs';
+import { ScannableInput } from '../pages/ScannableInput';
 import { ENDPOINTS } from '../../services/Config';
-
-// ─── Shared helpers ───────────────────────────────────────────────────────────
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -21,8 +20,6 @@ const InputGroup = ({ label, value, onChange, placeholder = "", type = "text", r
   </div>
 );
 
-// ─── Cover Image Uploader ─────────────────────────────────────────────────────
-
 const CoverUploader = ({ previewUrl, onFileSelect, error }) => {
   const inputRef = useRef(null);
 
@@ -32,7 +29,6 @@ const CoverUploader = ({ previewUrl, onFileSelect, error }) => {
         Book Cover <span className="normal-case font-normal text-gray-400">(PNG, JPEG, WebP, AVIF · max 5 MB)</span>
       </label>
 
-      {/* Preview / Drop Zone */}
       <div
         onClick={() => inputRef.current?.click()}
         className={`relative flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed cursor-pointer transition-all overflow-hidden
@@ -43,7 +39,6 @@ const CoverUploader = ({ previewUrl, onFileSelect, error }) => {
         {previewUrl ? (
           <>
             <img src={previewUrl} alt="Cover preview" className="absolute inset-0 w-full h-full object-cover" />
-            {/* Overlay hint on hover */}
             <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
               <UploadCloud className="w-6 h-6 text-white" />
               <span className="text-white text-xs font-semibold">Change cover</span>
@@ -71,15 +66,12 @@ const CoverUploader = ({ previewUrl, onFileSelect, error }) => {
         onChange={e => {
           const file = e.target.files?.[0];
           if (file) onFileSelect(file);
-          // Reset so the same file can be re-selected after an error
           e.target.value = '';
         }}
       />
     </div>
   );
 };
-
-// ─── ADD / UPDATE BOOK MODAL ──────────────────────────────────────────────────
 
 export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData = null }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,8 +84,8 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
   };
 
   const [formData, setFormData] = useState(emptyForm);
-  const [coverFile, setCoverFile] = useState(null);          // new File object
-  const [previewUrl, setPreviewUrl] = useState(null);        // blob: or existing URL
+  const [coverFile, setCoverFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [imageError, setImageError] = useState('');
 
   useEffect(() => {
@@ -131,29 +123,15 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
     setIsSubmitting(true);
 
     try {
-      /**
-       * We always send multipart/form-data so the image file can be
-       * transmitted alongside text fields. Laravel's Request::validate()
-       * handles both JSON and multipart seamlessly.
-       *
-       * For PUT requests Laravel requires the _method spoofing trick
-       * because browsers can't send PUT with multipart bodies natively.
-       */
       const payload = new FormData();
-
-      // Spoof PUT so Laravel routes it correctly when editing
       if (isEditing) payload.append('_method', 'PUT');
-
       Object.entries(formData).forEach(([key, val]) => {
         if (val !== null && val !== undefined) payload.append(key, val);
       });
-
       if (coverFile) payload.append('cover_image', coverFile);
 
       const url    = isEditing ? `${ENDPOINTS.BOOKS}/${bookData.id}` : ENDPOINTS.BOOKS;
-      // Always POST — Laravel will route it as PUT via _method when editing
       const method = 'POST';
-
       const res = await fetch(url, { method, body: payload });
 
       if (res.ok) {
@@ -187,13 +165,17 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
 
-            {/* Cover + Title + Category row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
               <div>
                 <CoverUploader previewUrl={previewUrl} onFileSelect={handleFileSelect} error={imageError} />
               </div>
               <div className="md:col-span-2 flex flex-col gap-4">
-                <InputGroup label="Book Title" value={formData.title} onChange={v => handleChange('title', v)} />
+                <ScannableInput
+                  label="Book Title"
+                  value={formData.title}
+                  onChange={v => handleChange('title', v)}
+                  scanMode="text"
+                />
                 <SearchableSelect
                   label="Category"
                   options={categories.map(c => ({ label: c.name, value: c.id }))}
@@ -208,28 +190,41 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
               </div>
             </div>
 
-            {/* Row 2 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
               <InputGroup label="Copyright Year" value={formData.copyright} onChange={v => handleChange('copyright', v)} />
-              <InputGroup label="ISBN" value={formData.isbn} onChange={v => handleChange('isbn', v)} />
-              <InputGroup label="Accession No." value={formData.acc_no} onChange={v => handleChange('acc_no', v)} />
+
+              <ScannableInput
+                label="ISBN"
+                value={formData.isbn}
+                onChange={v => handleChange('isbn', v)}
+                scanMode="code" 
+              />
+
+              <ScannableInput
+                label="Accession No."
+                value={formData.acc_no}
+                onChange={v => handleChange('acc_no', v)}
+                scanMode="code"
+              />
             </div>
 
-            {/* Row 3 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
-              <InputGroup label="Call Number" value={formData.call_number} onChange={v => handleChange('call_number', v)} />
+              <ScannableInput
+                label="Call Number"
+                value={formData.call_number}
+                onChange={v => handleChange('call_number', v)}
+                scanMode="code"
+              />
               <InputGroup label="Edition" value={formData.edition} onChange={v => handleChange('edition', v)} />
               <InputGroup type="number" label="No. of Copies" value={formData.copies} onChange={v => handleChange('copies', v)} />
             </div>
 
-            {/* Row 4 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
               <InputGroup type="number" label="No. of Pages" value={formData.pages} onChange={v => handleChange('pages', v)} />
               <InputGroup label="Subject" value={formData.subject} onChange={v => handleChange('subject', v)} />
               <InputGroup label="Keywords" value={formData.keyword} onChange={v => handleChange('keyword', v)} placeholder="Comma separated" />
             </div>
 
-            {/* Row 5 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
               <InputGroup label="Section" value={formData.section} onChange={v => handleChange('section', v)} />
             </div>
@@ -252,8 +247,6 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
   );
 };
 
-// ─── VIEW DETAILS MODAL ───────────────────────────────────────────────────────
-
 export const ViewBookModal = ({ isOpen, onClose, book }) => {
   if (!isOpen || !book) return null;
 
@@ -261,7 +254,6 @@ export const ViewBookModal = ({ isOpen, onClose, book }) => {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
         
-        {/* Header */}
         <div className="px-6 py-5 bg-[#7f1d1d] flex justify-between items-start text-white shrink-0">
           <div>
             <h2 className="text-2xl font-bold mb-1">{book.title}</h2>
@@ -273,7 +265,6 @@ export const ViewBookModal = ({ isOpen, onClose, book }) => {
         </div>
 
         <div className="p-6 bg-gray-50 overflow-y-auto max-h-[70vh]">
-          {/* Cover image */}
           {book.cover_image_url ? (
             <div className="mb-5 flex justify-center">
               <img
@@ -307,8 +298,6 @@ export const ViewBookModal = ({ isOpen, onClose, book }) => {
   );
 };
 
-// ─── DELETE CONFIRMATION MODAL ────────────────────────────────────────────────
-
 export const DeleteConfirmationModal = ({
   isOpen,
   onClose,
@@ -340,8 +329,6 @@ export const DeleteConfirmationModal = ({
     </div>
   );
 };
-
-// ─── ADD CATEGORY MODAL ───────────────────────────────────────────────────────
 
 export const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
   const [name, setName] = useState('');
@@ -386,8 +373,6 @@ export const AddCategoryModal = ({ isOpen, onClose, onSuccess }) => {
     </div>
   );
 };
-
-// ─── MANAGE CATEGORIES MODAL ──────────────────────────────────────────────────
 
 export const ManageCategoriesModal = ({ isOpen, onClose, onSuccess, categories, onRefresh }) => {
   const [editingId, setEditingId]       = useState(null);

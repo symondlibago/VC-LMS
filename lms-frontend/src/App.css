@@ -880,3 +880,12 @@
     width: 100% !important;
   }
 }
+
+@keyframes scan-line {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+.animate-scan-line {
+  animation: scan-line 2s linear infinite;
+}
