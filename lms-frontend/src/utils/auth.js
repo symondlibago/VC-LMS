@@ -1,5 +1,5 @@
 // auth.js
-export const API_BASE_URL = 'http://localhost:8000/api';
+export const API_BASE_URL = '/api';
 
 export const getAuthToken = () => localStorage.getItem('auth_token');
 export const getUser = () => {

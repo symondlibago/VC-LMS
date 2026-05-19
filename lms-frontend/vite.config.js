@@ -14,10 +14,6 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      server: {
-    https: true,
-    host: true, // exposes to your network so phone can access it
-  },
       manifest: {
         name: 'Library Monitoring System',
         short_name: 'LMS',
@@ -40,6 +36,18 @@ export default defineConfig({
       }
     })
   ],
+  server: {
+    https: true,
+    host: true,
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

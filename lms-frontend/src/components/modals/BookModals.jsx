@@ -197,7 +197,7 @@ export const AddBookModal = ({ isOpen, onClose, onSuccess, categories, bookData 
                 label="ISBN"
                 value={formData.isbn}
                 onChange={v => handleChange('isbn', v)}
-                scanMode="code" 
+                scanMode="isbn"
               />
 
               <ScannableInput

@@ -14,9 +14,11 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
   const [cameraError, setCameraError] = useState('');
   const [facingMode, setFacingMode] = useState('environment'); 
 
-  // Box heights: 40% for multi-line text (Titles), 20% for single-line codes (ISBNs)
+  // Box heights: 40% for multi-line text (Titles), 20% for single-line codes (ISBNs, call numbers)
   const isTextMode = scanMode === 'text';
-  const boxHeightPercent = isTextMode ? 0.40 : 0.20; 
+  const isIsbnMode = scanMode === 'isbn';
+  const isCodeMode = scanMode === 'code' || isIsbnMode;
+  const boxHeightPercent = isTextMode ? 0.40 : 0.20;
   const boxHeightClass = isTextMode ? 'h-[40%]' : 'h-[20%]';
 
   // ── Start camera ────────────────────────────────────────────────────────────
@@ -52,27 +54,81 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
     }
   }, [facingMode]);
 
-  // ── Pre-process Image (Binarization & Contrast) ─────────────────────────────
+  // ── Pre-process Image (Otsu adaptive thresholding) ──────────────────────────
+  // Otsu picks the optimal black/white threshold for the *current* lighting
+  // conditions, which beats a fixed contrast boost on faint or uneven text.
   const applyImageEnhancements = (canvas) => {
     const ctx = canvas.getContext('2d');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
+    const pixelCount = canvas.width * canvas.height;
+    const grays = new Uint8ClampedArray(pixelCount);
 
-    // Convert to grayscale and apply high contrast threshold
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2];
-      // Standard grayscale conversion
-      let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      
-      // Boost contrast heavily to eliminate shadows/background gradients
-      gray = ((gray - 128) * 2.0) + 128; 
-      
-      if (gray > 255) gray = 255;
-      if (gray < 0) gray = 0;
+    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+      grays[j] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    }
 
-      data[i] = data[i + 1] = data[i + 2] = gray;
+    const histogram = new Array(256).fill(0);
+    for (let i = 0; i < pixelCount; i++) histogram[grays[i]]++;
+
+    let sumAll = 0;
+    for (let t = 0; t < 256; t++) sumAll += t * histogram[t];
+
+    let sumBg = 0, weightBg = 0, maxVariance = 0, threshold = 128;
+    for (let t = 0; t < 256; t++) {
+      weightBg += histogram[t];
+      if (weightBg === 0) continue;
+      const weightFg = pixelCount - weightBg;
+      if (weightFg === 0) break;
+      sumBg += t * histogram[t];
+      const meanBg = sumBg / weightBg;
+      const meanFg = (sumAll - sumBg) / weightFg;
+      const variance = weightBg * weightFg * (meanBg - meanFg) * (meanBg - meanFg);
+      if (variance > maxVariance) {
+        maxVariance = variance;
+        threshold = t;
+      }
+    }
+
+    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+      const v = grays[j] >= threshold ? 255 : 0;
+      data[i] = data[i + 1] = data[i + 2] = v;
     }
     ctx.putImageData(imageData, 0, 0);
+  };
+
+  // ── ISBN checksum validator ─────────────────────────────────────────────────
+  // Rejects misreads like "ISBN: 9" before they pollute the database.
+  const isValidISBN = (digits) => {
+    if (digits.length === 13) {
+      let sum = 0;
+      for (let i = 0; i < 12; i++) sum += parseInt(digits[i], 10) * (i % 2 === 0 ? 1 : 3);
+      return (10 - (sum % 10)) % 10 === parseInt(digits[12], 10);
+    }
+    if (digits.length === 10) {
+      let sum = 0;
+      for (let i = 0; i < 9; i++) sum += parseInt(digits[i], 10) * (10 - i);
+      sum += digits[9] === 'X' ? 10 : parseInt(digits[9], 10);
+      return sum % 11 === 0;
+    }
+    return false;
+  };
+
+  // ── Find a valid ISBN inside arbitrary OCR text ─────────────────────────────
+  // Tesseract often grabs extra digits from the copyright page (year, page #s,
+  // publisher codes). Instead of demanding the whole capture BE an ISBN, we
+  // scan for any 10/13-digit substring and validate its checksum. The first
+  // checksum-valid candidate wins.
+  const extractISBN = (text) => {
+    const digitsOnly = text.replace(/[^0-9X]/gi, '').toUpperCase();
+    // Try every 13-char then every 10-char window — checksum filters noise.
+    for (let len of [13, 10]) {
+      for (let i = 0; i + len <= digitsOnly.length; i++) {
+        const candidate = digitsOnly.slice(i, i + len);
+        if (isValidISBN(candidate)) return candidate;
+      }
+    }
+    return null;
   };
 
   // ── OCR capture & Crop ──────────────────────────────────────────────────────
@@ -81,6 +137,7 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
 
     setStatus('processing');
     setStatusMsg('Enhancing & Reading...');
+    setCameraError('');
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -120,11 +177,22 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
     try {
       if (!ocrWorkerRef.current) {
         setStatusMsg('Loading OCR engine...');
-        const worker = await createWorker('eng');
-        // PSM 6 tells Tesseract to assume a single uniform block of text, preventing weird edge hallucinations
-        await worker.setParameters({ tessedit_pageseg_mode: '6' });
-        ocrWorkerRef.current = worker;
+        ocrWorkerRef.current = await createWorker('eng');
       }
+
+      // ISBN: PSM 6 (block) so we capture surrounding context — extractISBN
+      // pulls the actual ISBN out of whatever Tesseract returns, so extra
+      // text doesn't hurt. Other code modes stick with PSM 7 (single line).
+      const psm = isIsbnMode ? '6' : isCodeMode ? '7' : '6';
+      const charWhitelist = isIsbnMode
+        ? '0123456789X-'
+        : scanMode === 'code'
+          ? '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-.'
+          : '';
+      await ocrWorkerRef.current.setParameters({
+        tessedit_pageseg_mode: psm,
+        tessedit_char_whitelist: charWhitelist,
+      });
 
       const { data } = await ocrWorkerRef.current.recognize(canvas);
       let rawText = data.text.trim();
@@ -136,23 +204,34 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
       }
 
       // ─── Sanitize Output ───────────────────────────────────────────────────
-      
+
+      if (isIsbnMode) {
+        // Find the actual ISBN inside whatever Tesseract captured — survives
+        // copyright pages where the ISBN is surrounded by years and page numbers.
+        const found = extractISBN(rawText);
+        if (!found) {
+          setStatus('error');
+          setCameraError("Doesn't look like a valid ISBN. Hold closer and try again.");
+          return;
+        }
+        // Re-format ISBN-13 with the standard 978-XXX-XXX-XXX-X grouping.
+        const cleaned = found.length === 13
+          ? `${found.slice(0, 3)}-${found.slice(3, 6)}-${found.slice(6, 9)}-${found.slice(9, 12)}-${found.slice(12)}`
+          : found;
+        setScannedValue(cleaned);
+        setStatus('success');
+        setStatusMsg('Detected successfully!');
+        return;
+      }
+
       if (scanMode === 'code') {
-        // Strip out completely invalid characters
         rawText = rawText.replace(/[^a-zA-Z0-9\-\.\s:]/g, '');
-        // Fix common OCR typos in numbers
-        rawText = rawText.replace(/O/g, '0').replace(/l/g, '1').replace(/I/g, '1');
-        // Remove the word "ISBN" if the camera caught it
-        rawText = rawText.replace(/^ISBN[\s:]*/i, '');
-        // Fix spaces around dashes (e.g. "978 - 621" -> "978-621")
         rawText = rawText.replace(/\s*-\s*/g, '-');
       } else {
-        // Remove stray UI/background hallucinations common in Titles
         rawText = rawText.replace(/\|/g, '').replace(/_/g, '').replace(/~/g, '');
       }
 
-      // Condense spaces/newlines
-      let cleaned = rawText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+      const cleaned = rawText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
 
       if (!cleaned) {
         setStatus('error');
@@ -162,7 +241,7 @@ const ScannerModal = ({ isOpen, onClose, onResult, scanMode, label }) => {
 
       setScannedValue(cleaned);
       setStatus('success');
-      setStatusMsg(`Detected successfully!`);
+      setStatusMsg('Detected successfully!');
     } catch (err) {
       console.error('OCR error:', err);
       setCameraError('OCR failed. Please try again.');
@@ -305,9 +384,9 @@ export const ScannableInput = ({ label, value, onChange, placeholder = '', type 
         {label}
         {canScan && (
           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${
-            scanMode === 'code' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+            scanMode === 'text' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
           }`}>
-            {scanMode === 'code' ? 'CODE / ID' : 'TEXT'}
+            {scanMode === 'isbn' ? 'ISBN' : scanMode === 'code' ? 'CODE / ID' : 'TEXT'}
           </span>
         )}
       </label>
